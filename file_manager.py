@@ -31,7 +31,7 @@ class FileReader:
                 uniq_ips.append(ip)
                 uniq_ips = list(set(uniq_ips))
                 if uniq_ips[-1] == ip:
-                    if not Config().get_separate() == True:
+                    if not Config().get_separate():
                         pattern = re.compile('(?:\n|^)(' + re.escape(ip) + ').+(://' + re.escape(domain) + ').*')
                         if not pattern.search(cfile):
                             uniq_ips.remove(ip)

@@ -14,4 +14,4 @@ class Config:
             return self.config.get("Settings", "location") + "\\"
 
     def get_separate(self):
-        return self.config.get("Settings", "separate")
+        return self.config.getboolean("Settings", "separate")
