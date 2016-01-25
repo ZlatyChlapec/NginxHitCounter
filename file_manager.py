@@ -7,7 +7,7 @@ class FileReader:
         pass
 
     @classmethod
-    def get_uniq_ips(cls, domain, file_name, page="\/|index\."):
+    def get_uniq_ips(cls, domain, file_name, page="/ |/index\."):
         """
         If you are a smart boy and have accesses for each website in separate file I advise to cut regex after this
         group (.+"GET ' + page + ' ).
@@ -21,11 +21,20 @@ class FileReader:
         :param domain: Domain name for which you want to count hits.
         :return:
         """
-        uniq_ips = set()
-        pattern = re.compile('(\n|^)(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(.+"GET ' + page + ' )(.*\s.*)(' + domain + ')(.*)')
+        uniq_ips = []
+        if not page == "/ |/index\.":
+            page = re.compile(page)
         for name in file_name:
-            for (a, ip, c, d, domain, f) in re.findall(pattern, cls.get_file(name)):
-                uniq_ips.add(ip)
+            pattern = re.compile('(?:\n|^)(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}).+"GET (' + page + ')')
+            cfile = cls.get_file(name)
+            for (ip, page) in re.findall(pattern, cfile):
+                uniq_ips.append(ip)
+                uniq_ips = list(set(uniq_ips))
+                if uniq_ips[-1] == ip:
+                    if not Config().get_separate() == True:
+                        pattern = re.compile('(?:\n|^)(' + re.escape(ip) + ').+(://' + re.escape(domain) + ').*')
+                        if not pattern.search(cfile):
+                            uniq_ips.remove(ip)
         return len(uniq_ips)
 
     @staticmethod
