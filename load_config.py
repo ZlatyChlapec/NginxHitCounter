@@ -7,11 +7,18 @@ class Config:
         config.read("conf.ini")
         self.config = config
 
-    def get_path(self):
-        if self.config.get("Settings", "system") == "linux":
-            return self.config.get("Settings", "location") + "/"
-        else:
-            return self.config.get("Settings", "location") + "\\"
-
-    def get_separate(self):
-        return self.config.getboolean("Settings", "separate")
+    def get_option(self, option):
+        try:
+            if option == "location":
+                return self.config.get("Settings", option)
+            elif option == "separate":
+                return self.config.getboolean("Settings", option)
+            else:
+                print "One or more options are missing from conf.ini"
+                exit(1)
+        except ConfigParser.NoOptionError:
+            print "Option " + option + " is missing from conf.ini"
+            exit(1)
+        except ValueError:
+            print "Wrong value of " + option + "."
+            exit(1)
