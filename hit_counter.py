@@ -16,13 +16,15 @@ import time
 
 start_time = time.clock()
 
+config = Config()
 log_list = range(0,34)
+
 for index, log in enumerate(log_list):
     log_list[index] = "access.log" if index == 0 else "access.log." + str(index)
 
 print "There are %s unique IPs in your logs." % len(FileReader.get_uniq_ips("potkany.cz",
-                                                                            Config().get_option("location"),
+                                                                            config.get_option("location"),
                                                                             log_list,
-                                                                            Config().get_option("separate")))
+                                                                            config.get_option("separate")))
 
 print "It took %.2fs to figure it out." % (time.clock() - start_time)
