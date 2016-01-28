@@ -6,8 +6,8 @@ class FileReader:
     def __init__(self):
         pass
 
-    @classmethod
-    def get_uniq_ips(cls, domain, file_name, separate, page="/ |/index\."):
+    @staticmethod
+    def get_uniq_ips(domain, location, file_names, separate, page="/ |/index\."):
         """
         Retrieves unique ips from logs. If access logs for each sub/domain are in separate files it works perfectly BUT
         if there are access logs for more than one sub/domain (``separate`` == False), in one log file it will count IP
@@ -23,7 +23,8 @@ class FileReader:
         regexes.
 
         :param domain: Domain name for which you want to count hits.
-        :param file_name: List of the file names with access records.
+        :param location: Location of folder in which files are located.
+        :param file_names: List of the file names with access records.
         :param separate: Separated log files or not.
         :param page: Page for which you want to count hits. Default is / and index.
         :return: All unique ips which were found.
@@ -32,10 +33,10 @@ class FileReader:
         # if index was changed, escape ``page``
         if page != "/ |/index\.":
             page = re.escape(page)
-        for name in file_name:
+        for name in file_names:
             pattern = re.compile('(?:\n|^)(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}).+"GET (' + page + ')')
             # save content of file to ``cfile`` since well be using it twice
-            cfile = cls.read_file(name)
+            cfile = FileReader.read_file(location + name)
             cfile_ips = set()
             remove_ips = set()
             # go and find all unique ids from ``cfile``
@@ -53,14 +54,14 @@ class FileReader:
         return uniq_ips
 
     @staticmethod
-    def read_file(file_name):
+    def read_file(path_to_file):
         """
         Opens the file and returns content.
         :param file_name: Name of the file we want to open.
         :return: Content of file.
         """
         try:
-            file = open(Config().get_option("location") + file_name, "r")
+            file = open(path_to_file, "r")
         except IOError as e:
             print e
             exit(1)
