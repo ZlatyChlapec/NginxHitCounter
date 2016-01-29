@@ -1,4 +1,5 @@
 import ConfigParser
+import json
 import os.path
 
 
@@ -18,8 +19,27 @@ class Config:
         try:
             if option == "location":
                 return self.config.get("Settings", option)
+            elif option == "files":
+                location = self.get_option("location")
+                files = json.loads(self.config.get("Settings", option))
+                if len(files) == 1:
+                    while os.path.isfile(location + files[0] + "." + str(len(files))):
+                        files.append(files[0] + "." + str(len(files)))
+                elif len(files) > 1:
+                    for file in files:
+                        if not os.path.isfile(location + file):
+                            print "One or more log files weren't found."
+                            exit(1)
+                else:
+                    print "You didn't specify file names in required format."
+                    exit(1)
+                return files
             elif option == "separate":
                 return self.config.getboolean("Settings", option)
+            elif option == "page":
+                return self.config.get("Settings", option)
+            elif option == "domain":
+                return self.config.get("Settings", option)
             else:
                 print "One or more options are missing from conf.ini"
                 exit(1)
