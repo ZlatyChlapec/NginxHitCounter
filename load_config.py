@@ -5,22 +5,32 @@ import os.path
 
 class Config:
     def __init__(self):
+        config = ConfigParser.SafeConfigParser()
+        self.config = config
         if os.path.isfile("conf.ini"):
-            config = ConfigParser.SafeConfigParser()
             config.read("conf.ini")
-            self.config = config
+            if self.__load_options("first_time"):
+                first_time = raw_input("Do you want to go through first time set up?")
+                if first_time.lower() == "yes" or first_time.lower() == "y":
+                    self.first_time_setup()
+                    Config()
         else:
-            print "`conf.ini` file is missing.\n Please visit " \
-                  "https://github.com/ZlatyChlapec/NginxHitCounter/blob/master/conf.ini to get the idea how one " \
-                  "should look like."
-            exit(1)
+            self.first_time_setup()
+            Config()
+        self.location = self.__load_options("location")
+        self.files = self.__load_options("files")
+        self.separate = self.__load_options("separate")
+        self.page = self.__load_options("page")
+        self.domain = self.__load_options("domain")
 
-    def get_option(self, option):
+    def __load_options(self, option):
         try:
-            if option == "location":
+            if option == "first_time":
+                return self.config.getboolean("Settings", option)
+            elif option == "location":
                 return self.config.get("Settings", option)
             elif option == "files":
-                location = self.get_option("location")
+                location = self.__load_options("location")
                 files = json.loads(self.config.get("Settings", option))
                 if len(files) == 1:
                     while os.path.isfile(location + files[0] + "." + str(len(files))):
@@ -52,3 +62,16 @@ class Config:
         except ValueError:
             print "Wrong value of " + option + "."
             exit(1)
+
+    def first_time_setup(self):
+        self.config.add_section('Settings')
+        self.config.set('Settings', 'first_time', 'False')
+        self.config.set('Settings', 'location', 'D:\\Temp\\alog\\')
+        self.config.set('Settings', 'files', '["access.log"]')
+        self.config.set('Settings', 'page', '')
+        self.config.set('Settings', 'separate', 'False')
+        self.config.set('Settings', 'domain', 'potkany.cz')
+
+        # Writing our configuration file to 'example.cfg'
+        with open('conf.ini', 'wb') as configfile:
+            self.config.write(configfile)
