@@ -22,16 +22,17 @@ class Config:
             if size == 0 or self.__load_options("first_time"):
                 first_time = raw_input("Do you want to go through first time set up? " + Colors.White + "(e.g. y/n)\n" +
                                        Colors.Red + "All previous settings will be erased!!!" + Colors.End + "\n")
-                if first_time.lower() == "yes" or first_time.lower() == "y":
+                if first_time.lower() in ["yes", "y"]:
                     if size == 0:
                         self.__first_time_setup(True, file_name)
                     else:
                         self.__first_time_setup(False, file_name)
-            self.location = self.__load_options("location")
-            self.files = self.__load_options("files")
-            self.separate = self.__load_options("separate")
-            self.page = self.__load_options("page")
-            self.domain = self.__load_options("domain")
+            else:
+                self.location = self.__load_options("location")
+                self.files = self.__load_options("files")
+                self.separate = self.__load_options("separate")
+                self.page = self.__load_options("page")
+                self.domain = self.__load_options("domain")
         else:
             self.__first_time_setup(True, file_name)
 
@@ -44,18 +45,7 @@ class Config:
             elif option == "files":
                 location = self.__load_options("location")
                 files = json.loads(self.config.get("Settings", option))
-                if len(files) == 1:
-                    while os.path.isfile(location + files[0] + "." + str(len(files))):
-                        files.append(files[0] + "." + str(len(files)))
-                elif len(files) > 1:
-                    for file in files:
-                        if not os.path.isfile(location + file):
-                            print Colors.Red + "One or more log files weren't found." + Colors.End
-                            exit(1)
-                else:
-                    print Colors.Red + "You didn't specify file names in required format." + Colors.End
-                    exit(1)
-                return files
+                return self.__all_files(location, files)
             elif option == "separate":
                 return self.config.getboolean("Settings", option)
             elif option == "page":
@@ -92,17 +82,20 @@ class Config:
         s_hint = "# If you have in log file only access logs from one sub/domain, set this to True else False."
         d_hint = "# If separate == False you need to specify domain for which you wish to count hits."
 
-        location = raw_input(Colors.White + l_hint + Colors.End + "\nLocation: ")
-        files = raw_input(Colors.White + f_hint + Colors.End + "\nFiles: ").split(",,")
-        page = raw_input(Colors.White + p_hint + Colors.End + "\nPage: ")
-        separate = raw_input(Colors.White + s_hint + Colors.End + "\nSeparate: ")
-        domain = raw_input(Colors.White + d_hint + Colors.End + "\nDomain: ")
+        self.location = raw_input(Colors.White + l_hint + Colors.End + "\nLocation: ")
+        self.files = raw_input(Colors.White + f_hint + Colors.End + "\nFiles: ").split(",,")
+        self.page = raw_input(Colors.White + p_hint + Colors.End + "\nPage: ")
+        self.separate = raw_input(Colors.White + s_hint + Colors.End + "\nSeparate: ").lower() in \
+                        ["1", "yes", "true", "on", "True"]
+        self.domain = raw_input(Colors.White + d_hint + Colors.End + "\nDomain: ")
 
-        self.config.set('Settings', 'location', location)
-        self.config.set('Settings', 'files', json.dumps(files))
-        self.config.set('Settings', 'page', page)
-        self.config.set('Settings', 'separate', separate)
-        self.config.set('Settings', 'domain', domain)
+        self.config.set('Settings', 'location', self.location)
+        self.config.set('Settings', 'files', json.dumps(self.files))
+        self.config.set('Settings', 'page', self.page)
+        self.config.set('Settings', 'separate', str(self.separate))
+        self.config.set('Settings', 'domain', self.domain)
+
+        self.files = self.__all_files(self.location, self.files)
 
         try:
             file = open(self.home_dir + file_name, 'w')
@@ -112,3 +105,17 @@ class Config:
         else:
             with file as configfile:
                 self.config.write(configfile)
+
+    def __all_files(self, location, files):
+        if len(files) == 1:
+            while os.path.isfile(location + files[0] + "." + str(len(files))):
+                files.append(files[0] + "." + str(len(files)))
+        elif len(files) > 1:
+            for file in files:
+                if not os.path.isfile(location + file):
+                    print Colors.Red + "One or more log files weren't found." + Colors.End
+                    exit(1)
+        else:
+            print Colors.Red + "You didn't specify file names in required format." + Colors.End
+            exit(1)
+        return files
