@@ -15,8 +15,8 @@ import time
 start_time = time.clock()
 
 config = Config()
-
-print "There are %s unique IPs in your logs." % len(FileReader.get_uniq_ips(config.location,
+config.load_config()
+print "\nThere are %s unique IPs in your logs." % len(FileReader.get_uniq_ips(config.location,
                                                                             config.files,
                                                                             config.separate,
                                                                             config.page,
