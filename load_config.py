@@ -21,7 +21,7 @@ class Config:
             self.config.read(self.home_dir + file_name)
             size = os.stat(self.home_dir + file_name).st_size
             if size == 0 or self.__load_options("first_time"):
-                first_time = raw_input("Do you want to go through first time set up? " + Colors.White + "(e.g. y/n)\n" +
+                first_time = raw_input("Do you want to go through first time setup? " + Colors.White + "(e.g. y/n)\n" +
                                        Colors.Red + "All previous settings will be erased!!!" + Colors.End + "\n")
                 if first_time.lower() in ["yes", "y"]:
                     if size == 0:
