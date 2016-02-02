@@ -1,5 +1,6 @@
 import time
 import re
+from colors import Colors
 
 
 class FileReader:
@@ -7,7 +8,7 @@ class FileReader:
         pass
 
     @staticmethod
-    def get_uniq_ips(location, file_names, separate, page="", domain=""):
+    def get_uniq_ips(location, file_names, page, separate, domain):
         """
         Retrieves unique ips from logs. If access logs for each sub/domain are in separate files it works perfectly BUT
         if there are access logs for more than one sub/domain (``separate`` == False), in one log file it will count IP
@@ -29,20 +30,12 @@ class FileReader:
         :param domain: Domain name for which you want to count hits.
         :return: All unique ips which were found.
         """
-        # if index was changed, escape ``page``
-        if page == "":
-            page = "/ |/index\."
-        else:
-            page = re.escape(page)
-        if domain == "" and separate is False:
-            print "You've set separate to False but you didn't specify domain for which you want to count hits."
-            exit(1)
-
         uniq_ips = set()
         time_parsing_ips = 0
         time_verifying_ips = 0
 
         for name in file_names:
+            print "Entered file " + name
             pattern = re.compile('(?:\n|^)(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}).+"GET (' + page + ')')
             # save content of file to ``cfile`` since well be using it twice
             cfile = FileReader.read_file(location + name)
@@ -65,7 +58,7 @@ class FileReader:
 
             uniq_ips |= cfile_ips - remove_ips
 
-        print "Parsing files for %.2fs" % time_parsing_ips
+        print "\nParsing files for %.2fs" % time_parsing_ips
         print "Verifying files for %.2fs" % time_verifying_ips
         return uniq_ips
 
@@ -74,12 +67,12 @@ class FileReader:
         """
         Opens the file and returns content.
         :param path_to_file: Name of the file we want to open.
-        :return: Content of file.
+        :return: Content of file. Only read.
         """
         try:
             file = open(path_to_file, "r")
         except IOError as e:
-            print e
+            print Colors.Red + str(e) + Colors.End
             exit(1)
         else:
             with file as log:
